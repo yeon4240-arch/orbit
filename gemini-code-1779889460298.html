@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Travel Planner ✈️</title>
+    <style>
+        :root {
+            --primary-color: #2a6fdb;
+            --secondary-color: #f1f5f9;
+            --accent-color: #ff4d4d;
+            --text-color: #1e293b;
+            --bg-color: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 16px;
+            padding-bottom: 60px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        header h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+        header p { font-size: 14px; color: #64748b; }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+            border: 1px solid #f1f5f9;
+        }
+
+        .section h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #0f172a;
+        }
+
+        /* 탭 가로 배치 스타일 (카테고리 분류용) */
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: var(--secondary-color);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* 공통 입력창 및 버튼 */
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        input, select, button {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus { border-color: var(--primary-color); }
+        input[type="text"], input[type="number"], input[type="time"], input[type="date"] { flex: 1; min-width: 100px; }
+        
+        .btn-main { background: var(--primary-color); color: white; border: none; font-weight: 600; cursor: pointer; }
+        .btn-del { background: #fee2e2; color: var(--accent-color); border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .btn-sort { background: #f1f5f9; color: #475569; border: none; padding: 6px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+        /* 예산 가계부 테이블 */
+        .budget-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .budget-box { background: var(--secondary-color); padding: 12px; border-radius: 12px; text-align: center; }
+        .budget-box span { font-size: 12px; color: #64748b; }
+        .budget-box p { font-size: 17px; font-weight: 700; margin-top: 4px; }
+
+        .expense-list { list-style: none; border-top: 1px dashed #e2e8f0; padding-top: 8px; max-height: 200px; overflow-y: auto; }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .expense-info { display: flex; flex-direction: column; gap: 2px; }
+        .expense-date { font-size: 11px; color: #94a3b8; }
+
+        /* 짐싸기 리스트 */
+        .check-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; border-bottom: 1px solid #f8fafc; }
+        .check-label { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
+        .check-label input { width: 18px; height: 18px; }
+        .check-label.done span { text-decoration: line-through; color: #94a3b8; }
+
+        /* 일정 타임라인 */
+        .timeline { position: relative; padding-left: 20px; margin-top: 10px; }
+        .timeline::before { content: ''; position: absolute; left: 5px; top: 10px; bottom: 10px; width: 2px; background: #e2e8f0; }
+        .timeline-item { position: relative; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .timeline-item::after { content: ''; position: absolute; left: -18px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--primary-color); border: 2px solid white; }
+        .timeline-body { flex: 1; }
+        .time { font-size: 12px; font-weight: 700; color: var(--primary-color); }
+        .location { font-size: 14px; font-weight: 700; color: #0f172a; margin: 2px 0; }
+        .memo { font-size: 12px; color: #64748b; }
+        .timeline-action { display: flex; gap: 4px; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Travel Planner ✈️</h1>
+        <p>내 손안의 스마트 여행 비서</p>
+    </header>
+
+    <div class="section">
+        <h2>💰 예산 계산기 (날짜별 가계부)</h2>
+        <div class="input-row">
+            <select id="currency" onchange="updateBudget()">
+                <option value="1">원화 (₩)</option>
+                <option value="9.0">일본 엔 (¥ 100엔당)</option>
+                <option value="1370">미국 달러 ($)</option>
+            </select>
+            <input type="number" id="total-budget" value="500000" oninput="updateBudget()" placeholder="총 예산">
+        </div>
+        
+        <div class="budget-summary">
+            <div class="budget-box"><span>사용한 금액</span><p id="used-amount" style="color: var(--accent-color);">0</p></div>
+            <div class="budget-box"><span>남은 예산</span><p id="remaining-amount" style="color: var(--primary-color);">0</p></div>
+        </div>
+
+        <div class="input-row">
+            <input type="date" id="expense-date">
+            <input type="text" id="expense-title" placeholder="내역 (예: 타코야끼)">
+            <input type="number" id="expense-cost" placeholder="금액">
+            <button class="btn-main" onclick="addExpense()">추가</button>
+        </div>
+
+        <ul class="expense-list" id="expense-list">
+            </ul>
+    </div>
+
+    <div class="section">
+        <h2>🧳 짐싸기 체크리스트</h2>
+        <div class="category-tabs">
+            <button class="tab-btn active" onclick="switchTab('pack', 'all')">전체</button>
+            <button class="tab-btn" onclick="switchTab('pack', 'essential')">필수품</button>
+            <button class="tab-btn" onclick="switchTab('pack', 'clothing')">의류/세면</button>
+            <button class="tab-btn" onclick="switchTab('pack', 'etc')">기타</button>
+        </div>
+
+        <div class="input-row">
+            <select id="pack-cat-select">
+                <option value="essential">필수품</option>
+                <option value="clothing">의류/세면</option>
+                <option value="etc">기타</option>
+            </select>
+            <input type="text" id="todo-input" placeholder="새 준비물 추가...">
+            <button class="btn-main" onclick="addTodo()">등록</button>
+        </div>
+
+        <div id="pack-container">
+            </div>
+    </div>
+
+    <div class="section">
+        <h2>📍 일정 플래너</h2>
+        <div class="category-tabs">
+            <button class="tab-btn active" onclick="switchTab('day', 'day1')">1일차</button>
+            <button class="tab-btn" onclick="switchTab('day', 'day2')">2일차</button>
+            <button class="tab-btn" onclick="switchTab('day', 'day3')">3일차</button>
+        </div>
+
+        <div class="input-row">
+            <input type="time" id="plan-time" value="12:00">
+            <input type="text" id="plan-location" placeholder="장소명">
+            <input type="text" id="plan-memo" placeholder="메모">
+            <button class="btn-main" onclick="addTimelineItem()">일정 추가</button>
+        </div>
+
+        <div class="timeline" id="timeline-container">
+            </div>
+    </div>
+
+    <script>
+        // 오늘 날짜 기본값 세팅
+        document.getElementById('expense-date').valueAsDate = new Date();
+
+        // --- 데이터 저장소 (초기 예시 데이터) ---
+        let totalExpense = 0;
+        let currentPackTab = 'all';
+        let currentDayTab = 'day1';
+
+        let packItems = [
+            { id: 1, category: 'essential', text: '여권 및 항공권 권종', done: false },
+            { id: 2, category: 'essential', text: '보조 배터리 & 멀티탭', done: false },
+            { id: 3, category: 'clothing', text: '스킨케어 앰플 & 로션', done: false },
+            { id: 4, category: 'etc', text: '위시리스트 굿즈 목록 캡처본', done: false }
+        ];
+
+        let targetSchedule = {
+            day1: [
+                { time: "09:00", location: "인천공항 집결 및 eSIM 확인", memo: "여권 꺼내기 쉬운 곳에 두기" },
+                { time: "14:00", location: "숙소 체크인 및 짐 맡기기", memo: "근처 편의점 위치 봐두기" }
+            ],
+            day2: [
+                { time: "11:00", location: "피규어 소품샵 거리 투어 🛍️", memo: "한정판 위주로 꼼꼼히 구경" }
+            ],
+            day3: [
+                { time: "12:00", location: "로컬 맛집 점심 식사", memo: "웨이팅 한 시간 생각하기" }
+            ]
+        };
+
+        // --- 탭 전환 로직 ---
+        function switchTab(type, target) {
+            const tabs = event.target.parentElement.querySelectorAll('.tab-btn');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if(type === 'pack') { currentPackTab = target; renderPack(); }
+            if(type === 'day') { currentDayTab = target; renderTimeline(); }
+        }
+
+        // --- 1. 예산 계산기 로직 (날짜 포함) ---
+        function updateBudget() {
+            const rate = parseFloat(document.getElementById('currency').value);
+            const totalBudget = parseFloat(document.getElementById('total-budget').value) || 0;
+            let usedCalculated = (rate === 9.0) ? (totalExpense / 100) * rate : totalExpense * rate;
+            const remaining = totalBudget - usedCalculated;
+            
+            document.getElementById('used-amount').innerText = usedCalculated.toLocaleString(undefined, {maximumFractionDigits:0}) + ' 원';
+            document.getElementById('remaining-amount').innerText = remaining.toLocaleString(undefined, {maximumFractionDigits:0}) + ' 원';
+        }
+
+        function addExpense() {
+            const dateIn = document.getElementById('expense-date').value;
+            const titleIn = document.getElementById('expense-title').value;
+            const costIn = document.getElementById('expense-cost').value;
+            const curSelect = document.getElementById('currency');
+            const curText = curSelect.options[curSelect.selectedIndex].text.split(' ')[0];
+
+            if(!titleIn || !costIn) return;
+
+            const cost = parseFloat(costIn);
+            totalExpense += cost;
+
+            const li = document.createElement('li');
+            li.className = 'expense-item';
+            // 표시 날짜 가공 (월-일만)
+            const dateFormed = dateIn ? dateIn.substring(5) : "";
+            
+            li.innerHTML = `
+                <div class="expense-info">
+                    <span>${titleIn}</span>
+                    <span class="expense-date">${dateFormed}</span>
+                </div>
+                <div>
+                    <span style="font-weight:600; margin-right:8px;">${cost.toLocaleString()} ${curText.includes('원화')?'원':curText.includes('엔')?'엔':'$'}</span>
+                    <button class="btn-del" onclick="deleteExpense(${cost}, this)">삭제</button>
+                </div>
+            `;
+            document.getElementById('expense-list').appendChild(li);
+
+            document.getElementById('expense-title').value = '';
+            document.getElementById('expense-cost').value = '';
+            updateBudget();
+        }
+
+        function deleteExpense(cost, btn) {
+            totalExpense -= cost;
+            btn.parentElement.parentElement.remove();
+            updateBudget();
+        }
+
+        // --- 2. 짐싸기 로직 (카테고리별 분류) ---
+        function renderPack() {
+            const container = document.getElementById('pack-container');
+            container.innerHTML = '';
+            
+            const filtered = packItems.filter(item => currentPackTab === 'all' || item.category === currentPackTab);
+            
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'check-item';
+                div.innerHTML = `
+                    <label class="check-label ${item.done ? 'done' : ''}">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onclick="togglePackCheck(${item.id})">
+                        <span>[${getCatName(item.category)}] ${item.text}</span>
+                    </label>
+                    <button class="btn-del" onclick="deletePack(${item.id})">삭제</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function getCatName(cat) {
+            if(cat==='essential') return '필수';
+            if(cat==='clothing') return '의류/세면';
+            return '기타';
+        }
+
+        function togglePackCheck(id) {
+            const item = packItems.find(p => p.id === id);
+            if(item) item.done = !item.done;
+            renderPack();
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const cat = document.getElementById('pack-cat-select').value;
+            if(!input.value) return;
+
+            packItems.push({
+                id: Date.now(),
+                category: cat,
+                text: input.value,
+                done: false
+            });
+            input.value = '';
+            renderPack();
+        }
+
+        function deletePack(id) {
+            packItems = packItems.filter(p => p.id !== id);
+            renderPack();
+        }
+
+        // --- 3. 일정 플래너 로직 (추가/삭제/순서 이동) ---
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+
+            const list = targetSchedule[currentDayTab] || [];
+            
+            // 시간순 자동 정렬 한번 시켜주기
+            list.sort((a,b) => a.time.localeCompare(b.time));
+
+            if(list.length === 0) {
+                container.innerHTML = '<p style="font-size:13px; color:#94a3b8; text-align:center; padding:20px 0;">등록된 일정이 없습니다.</p>';
+                return;
+            }
+
+            list.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'timeline-item';
+                div.innerHTML = `
+                    <div class="timeline-body">
+                        <div class="time">${item.time}</div>
+                        <div class="location">${item.location}</div>
+                        <div class="memo">${item.memo}</div>
+                    </div>
+                    <div class="timeline-action">
+                        <button class="btn-sort" onclick="moveOrder('${currentDayTab}', ${index}, -1)">▲</button>
+                        <button class="btn-sort" onclick="moveOrder('${currentDayTab}', ${index}, 1)">▼</button>
+                        <button class="btn-del" onclick="deleteTimelineItem('${currentDayTab}', ${index})">삭제</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addTimelineItem() {
+            const time = document.getElementById('plan-time').value;
+            const loc = document.getElementById('plan-location').value;
+            const memo = document.getElementById('plan-memo').value;
+
+            if(!loc) return;
+
+            if(!targetSchedule[currentDayTab]) targetSchedule[currentDayTab] = [];
+            targetSchedule[currentDayTab].push({ time, location: loc, memo: memo });
+
+            document.getElementById('plan-location').value = '';
+            document.getElementById('plan-memo').value = '';
+            renderTimeline();
+        }
+
+        function deleteTimelineItem(day, index) {
+            targetSchedule[day].splice(index, 1);
+            renderTimeline();
+        }
+
+        // 순서 강제 조정 기능 (위/아래 화살표 버튼용)
+        function moveOrder(day, index, direction) {
+            const list = targetSchedule[day];
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= list.length) return; // 범위를 벗어나면 작동 안 함
+
+            // 두 아이템의 위치를 바꿈
+            const temp = list[index];
+            list[index] = list[targetIndex];
+            list[targetIndex] = temp;
+
+            // 순서를 바꾼 후에는 사용자가 임의 조정한 것이므로, '시간 정렬 코드'를 일시 우회하기 위해 타임라인만 새로 렌더링
+            renderTimelineWithoutSort(day);
+        }
+
+        function renderTimelineWithoutSort(day) {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            const list = targetSchedule[day] || [];
+            
+            list.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'timeline-item';
+                div.innerHTML = `
+                    <div class="timeline-body">
+                        <div class="time">${item.time}</div>
+                        <div class="location">${item.location}</div>
+                        <div class="memo">${item.memo}</div>
+                    </div>
+                    <div class="timeline-action">
+                        <button class="btn-sort" onclick="moveOrder('${currentDayTab}', ${index}, -1)">▲</button>
+                        <button class="btn-sort" onclick="moveOrder('${currentDayTab}', ${index}, 1)">▼</button>
+                        <button class="btn-del" onclick="deleteTimelineItem('${currentDayTab}', ${index})">삭제</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 앱 초기 구동 랜더링
+        updateBudget();
+        renderPack();
+        renderTimeline();
+    </script>
+</body>
+</html>
